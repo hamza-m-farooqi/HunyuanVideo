@@ -34,7 +34,7 @@ def background_inference(job: InferenceJob):
         )
 
         # Use select to read from stdout and stderr without blocking
-        inferene_progress = 0
+        inferene_progress = None
         stderr_output = []
         while True:
             reads = [process.stdout.fileno(), process.stderr.fileno()]
@@ -49,10 +49,9 @@ def background_inference(job: InferenceJob):
                         if f"/{job.request.infer_steps}" in output:
                             percentage_value = get_progress_percentage(output)
                             percentage = percentage_value if percentage_value else 0
-                            logs_count += 1
 
                         job.progress = percentage
-                        if inferene_progress == 0 or job.progress >= (
+                        if inferene_progress is None or job.progress >= (
                             inferene_progress + 5
                         ):
                             inferene_progress = job.progress
@@ -70,9 +69,8 @@ def background_inference(job: InferenceJob):
                         if f"/{job.request.infer_steps}" in output:
                             percentage_value = get_progress_percentage(output)
                             percentage = percentage_value if percentage_value else 0
-                            logs_count += 1
                         job.progress = percentage
-                        if inferene_progress == 0 or job.progress >= (
+                        if inferene_progress is None or job.progress >= (
                             inferene_progress + 5
                         ):
                             inferene_progress = job.progress
