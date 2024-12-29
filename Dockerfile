@@ -4,10 +4,10 @@ FROM hunyuanvideo/hunyuanvideo:cuda_12
 ENV HF_HUB_ENABLE_HF_TRANSFER=0
 
 # Set the working directory
-WORKDIR /home
+WORKDIR /home/HunyuanVideo
 
 # Copy everything into the image
-COPY . /home
+COPY . /home/HunyuanVideo
 # Install Python dependencies (Worker Template)
 RUN python3 -m pip install --upgrade pip && \
     python3 -m pip install -r requirements-new.txt
