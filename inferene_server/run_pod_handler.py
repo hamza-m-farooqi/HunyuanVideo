@@ -34,6 +34,12 @@ def generate_video(job):
         return {"error": validated_input["errors"]}
     job_input = validated_input["validated_input"]
     inferene_request = InferenceRequest(**job_input)
+    inferene_request.prompt = inferene_request.prompt.replace(" ", "__")
+    if inferene_request.negative_prompt:
+        inferene_request.negative_prompt = inferene_request.negative_prompt.replace(
+            " ", "_"
+        )
+    # replace whitespace with underscore
     inference_job = InferenceJob(id=inferene_request.id, request=inferene_request)
     process_request(inference_job)
     return json.loads(inference_job.json())
