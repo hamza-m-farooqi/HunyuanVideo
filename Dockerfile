@@ -12,6 +12,6 @@ COPY . /home
 RUN python3 -m pip install --upgrade pip && \
     python3 -m pip install -r requirements-new.txt
 
-RUN python3 /home/HunyuanVideo/download_models.py
+RUN python3 /home/HunyuanVideo/inferene_server/download_models.py
 
-CMD python3 -u /home/HunyuanVideo/run_pod_handler.py
+CMD python3 -u /home/HunyuanVideo/inferene_server/run_pod_handler.py

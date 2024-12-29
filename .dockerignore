@@ -1,0 +1,31 @@
+# Ignore virtual environment
+venv
+
+# Ignore checkpoints and large files
+ckpts
+
+# Ignore Python cache files
+__pycache__
+
+# Ignore environment files
+.env
+
+# Ignore git files
+.git
+.gitattributes
+.gitignore
+
+# Ignore test results
+tests
+
+# Ignore results directory
+results
+
+# Ignore assets
+assets
+
+# Ignore sample videos
+sample_video.py
+
+# Ignore scripts
+scripts
