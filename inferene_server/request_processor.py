@@ -34,8 +34,7 @@ def background_inference(job: InferenceJob):
         )
 
         # Use select to read from stdout and stderr without blocking
-        logs_count = 0
-        safetensors_files = set()
+        inferene_progress = 0
         stderr_output = []
         while True:
             reads = [process.stdout.fileno(), process.stderr.fileno()]
@@ -51,8 +50,12 @@ def background_inference(job: InferenceJob):
                             percentage_value = get_progress_percentage(output)
                             percentage = percentage_value if percentage_value else 0
                             logs_count += 1
+
                         job.progress = percentage
-                        if logs_count % 40 == 0:
+                        if inferene_progress == 0 or job.progress >= (
+                            inferene_progress + 5
+                        ):
+                            inferene_progress = job.progress
                             webhook_response(
                                 job.request.webhook_url,
                                 json.loads(job.json()),
@@ -69,7 +72,10 @@ def background_inference(job: InferenceJob):
                             percentage = percentage_value if percentage_value else 0
                             logs_count += 1
                         job.progress = percentage
-                        if logs_count % 40 == 0:
+                        if inferene_progress == 0 or job.progress >= (
+                            inferene_progress + 5
+                        ):
+                            inferene_progress = job.progress
                             webhook_response(
                                 job.request.webhook_url,
                                 json.loads(job.json()),
@@ -88,7 +94,7 @@ def background_inference(job: InferenceJob):
         print("Job is Finished")
         process_response(job, save_path)
         job.progress = 100
-        job.status = InferenceJob.COMPLETED.value
+        job.status = InferenceStatus.COMPLETED.value
         webhook_response(job.request.webhook_url, json.loads(job.json()))
 
     except subprocess.CalledProcessError as e:
