@@ -12,12 +12,15 @@ from request_params import (
     InferenceJob,
 )
 from request_processor import process_request
+from server_utils import save_gcloud_storage_key
 
 print("Going to access files from runpod")
 import runpod
 from runpod.serverless.utils.rp_validator import validate
 
 torch.cuda.empty_cache()
+
+save_gcloud_storage_key()
 
 
 @torch.inference_mode()
