@@ -12,7 +12,7 @@ def upload(path, bucket_path):
         blob = bucket.blob(full_image_path)
         # upload videos to gcloud with conntent type videos
         blob.upload_from_filename(path, content_type="video/mp4")
-        return full_image_path
+        return f"https://storage.googleapis.com/{settings.GCLOUD_BUCKET_NAME}/{full_image_path}"
     except Exception as e:
         print(f"An error occurred while uploading the image: {e}")
         return None

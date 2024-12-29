@@ -1,12 +1,9 @@
 import os
 import re
+import pytz
 import json
 import select
 import subprocess
-import uuid
-import requests
-from threading import Thread
-from PIL import Image
 import server_settings as server_settings
 from request_params import (
     InferenceJob,
@@ -15,6 +12,7 @@ from request_params import (
 )
 from server_utils import webhook_response
 from gcloud_utils import upload as upload_to_gcloud
+from datetime import datetime
 from runpod.serverless.utils import rp_cleanup
 
 
@@ -93,6 +91,7 @@ def background_inference(job: InferenceJob):
         process_response(job, save_path)
         job.progress = 100
         job.status = InferenceStatus.COMPLETED.value
+        job.end_time = datetime.now(pytz.utc)
         webhook_response(job.request.webhook_url, json.loads(job.json()))
 
     except subprocess.CalledProcessError as e:
