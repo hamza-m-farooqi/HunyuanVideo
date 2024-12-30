@@ -18,7 +18,7 @@ from runpod.serverless.utils import rp_cleanup
 
 def background_inference(job: InferenceJob):
     save_path = os.path.join(server_settings.BASE_DIR, job.id)
-    command = f"bash -c 'torchrun --nproc_per_node=4 sample_video.py --video-size {job.request.height} {job.request.width} --video-length {job.request.video_length} --infer-steps {job.request.infer_steps} --prompt {job.request.prompt} --flow-reverse --seed {job.request.seed} --ulysses-degree {job.request.ulysses_degree}  --ring-degree {job.request.ring_degree} --save-path {save_path}'"
+    command = f"bash -c 'torchrun --nproc_per_node=4 /home/HunyuanVideo/sample_video.py --video-size {job.request.height} {job.request.width} --video-length {job.request.video_length} --infer-steps {job.request.infer_steps} --prompt {job.request.prompt} --flow-reverse --seed {job.request.seed} --ulysses-degree {job.request.ulysses_degree}  --ring-degree {job.request.ring_degree} --save-path {save_path}'"
     webhook_response(job.request.webhook_url, json.loads(job.json()))
     print(command)
 
