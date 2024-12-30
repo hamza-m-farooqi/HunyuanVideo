@@ -41,15 +41,15 @@ subscription_path = subscriber.subscription_path(
 
 torch.cuda.empty_cache()
 
-# Global stop event to handle graceful shutdown
-stop_event = threading.Event()
+# Global stop events for graceful thread control
+stop_event = threading.Event()  # Application-wide shutdown
+ack_extension_stop_event = threading.Event()  # For acknowledgment thread control
 
 # Thread-safe lock for global variables
 lock = threading.Lock()
 
 last_message_acknowledge_time = time.time()
 is_last_message_acknowledged = True
-
 
 def check_idle_timeout():
     global last_message_acknowledge_time
@@ -80,7 +80,6 @@ def check_idle_timeout():
             print(f"Error during idle timeout check: {e}")
         time.sleep(5)
 
-
 def extend_ack_deadline(message, stop_event, interval=30):
     while not stop_event.is_set():
         try:
@@ -93,7 +92,6 @@ def extend_ack_deadline(message, stop_event, interval=30):
             print(f"Error extending acknowledgment deadline: {e}")
             break
 
-
 def acknowledge_message(message):
     global last_message_acknowledge_time
     global is_last_message_acknowledged
@@ -102,7 +100,6 @@ def acknowledge_message(message):
         is_last_message_acknowledged = True
     message.ack()
     print("Message acknowledged successfully!")
-
 
 def callback(message):
     try:
@@ -122,8 +119,9 @@ def callback(message):
             return
         print(f"Received message: {request_payload}")
         # Start a separate thread to keep extending the acknowledgment deadline during processing
+        ack_extension_stop_event.clear()  # Ensure event is cleared before starting
         ack_extension_thread = threading.Thread(
-            target=extend_ack_deadline, args=(message, stop_event)
+            target=extend_ack_deadline, args=(message, ack_extension_stop_event)
         )
         ack_extension_thread.start()
 
@@ -141,13 +139,12 @@ def callback(message):
         print("Message acknowledged successfully!")
 
         # Stop the acknowledgment extension thread
-        stop_event.set()
+        ack_extension_stop_event.set()
         ack_extension_thread.join()
         print("Exited Callback!")
     except Exception as e:
         print(f"Error processing message: {e}")
         acknowledge_message(message)
-
 
 def listen_for_messages():
     # Flow control settings: only allow 1 message at a time
@@ -171,12 +168,10 @@ def listen_for_messages():
         streaming_pull_future.cancel()
         stop_event.set()  # Set the global stop event to stop any ongoing threads
 
-
 def handle_termination_signal(signum, frame):
     print("Received termination signal. Stopping listener...")
     stop_event.set()
     sys.exit(0)
-
 
 # Register the signal handlers to gracefully stop the application
 signal.signal(signal.SIGTERM, handle_termination_signal)
