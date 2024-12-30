@@ -47,7 +47,7 @@ stop_event = threading.Event()
 # Thread-safe lock for global variables
 lock = threading.Lock()
 
-last_message_acknowledge_time = None
+last_message_acknowledge_time = time.time()
 is_last_message_acknowledged = True
 
 
@@ -58,17 +58,20 @@ def check_idle_timeout():
     while not stop_event.is_set():
         try:
             with lock:
-                if is_last_message_acknowledged:
-                    current_time = time.time()
-                    if last_message_acknowledge_time and (
-                        current_time - last_message_acknowledge_time > idle_timeout
-                    ):
-                        print("Idle timeout reached. Stopping listener...")
-                        import runpod
+                if not is_last_message_acknowledged:
+                    print("Message not acknowledged. Skipping idle timeout check...")
+                    continue
 
-                        runpod.api_key = RUNPOD_API_KEY
-                        runpod.stop_pod(RUNPOD_POD_ID)
-                        break
+                current_time = time.time()
+                if last_message_acknowledge_time and (
+                    current_time - last_message_acknowledge_time > idle_timeout
+                ):
+                    print("Idle timeout reached. Stopping pod...")
+                    import runpod
+
+                    runpod.api_key = RUNPOD_API_KEY
+                    runpod.stop_pod(RUNPOD_POD_ID)
+                    break
         except Exception as e:
             print(f"Error during idle timeout check: {e}")
         time.sleep(5)
