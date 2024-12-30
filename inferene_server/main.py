@@ -60,15 +60,20 @@ def check_idle_timeout():
             with lock:
                 if is_last_message_acknowledged:
                     current_time = time.time()
-                    if last_message_acknowledge_time and (
-                        current_time - last_message_acknowledge_time > idle_timeout
-                    ):
+                    time_difference = None
+                    if last_message_acknowledge_time:
+                        time_difference = current_time - last_message_acknowledge_time
+                    if time_difference and time_difference > idle_timeout:
                         print("Idle timeout reached. Stopping pod...")
                         import runpod
 
                         runpod.api_key = RUNPOD_API_KEY
                         runpod.stop_pod(RUNPOD_POD_ID)
                         break
+                    else:
+                        print(
+                            f"Idle timeout not reached. Time difference: {time_difference}"
+                        )
                 else:
                     print("Message is being processed. Resetting idle timeout...")
         except Exception as e:
