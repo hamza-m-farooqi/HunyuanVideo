@@ -5,3 +5,5 @@ requests
 runpod
 loguru
 huggingface_hub[cli]
+google-cloud-pubsub
+google-auth
