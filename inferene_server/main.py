@@ -20,12 +20,13 @@ from server_settings import (
     RUN_POD_GCLOUD_PUBSUB_KEY_ENV_VAR,
     GCLOUD_CREDENTIALS,
     GCLOUD_PUB_SUB_CREDENTIALS,
+    RUNPOD_POD_ID,
+    RUNPOD_API_KEY,
 )
 from request_processor import process_request
 from server_utils import save_gcloud_keys
 from google.oauth2 import service_account
 from google.cloud import pubsub_v1
-
 
 save_gcloud_keys(RUN_POD_GCLOUD_STORAGE_KEY_ENV_VAR, GCLOUD_CREDENTIALS)
 save_gcloud_keys(RUN_POD_GCLOUD_PUBSUB_KEY_ENV_VAR, GCLOUD_PUB_SUB_CREDENTIALS)
@@ -43,6 +44,35 @@ torch.cuda.empty_cache()
 # Global stop event to handle graceful shutdown
 stop_event = threading.Event()
 
+# Thread-safe lock for global variables
+lock = threading.Lock()
+
+last_message_acknowledge_time = None
+is_last_message_acknowledged = True
+
+
+def check_idle_timeout():
+    global last_message_acknowledge_time
+    global is_last_message_acknowledged
+    idle_timeout = 60  # Configurable idle timeout in seconds
+    while not stop_event.is_set():
+        try:
+            with lock:
+                if is_last_message_acknowledged:
+                    current_time = time.time()
+                    if last_message_acknowledge_time and (
+                        current_time - last_message_acknowledge_time > idle_timeout
+                    ):
+                        print("Idle timeout reached. Stopping listener...")
+                        import runpod
+
+                        runpod.api_key = RUNPOD_API_KEY
+                        runpod.stop_pod(RUNPOD_POD_ID)
+                        break
+        except Exception as e:
+            print(f"Error during idle timeout check: {e}")
+        time.sleep(5)
+
 
 def extend_ack_deadline(message, stop_event, interval=30):
     while not stop_event.is_set():
@@ -57,9 +87,21 @@ def extend_ack_deadline(message, stop_event, interval=30):
             break
 
 
+def acknowledge_message(message):
+    global last_message_acknowledge_time
+    global is_last_message_acknowledged
+    with lock:
+        last_message_acknowledge_time = time.time()
+        is_last_message_acknowledged = True
+    message.ack()
+    print("Message acknowledged successfully!")
+
+
 def callback(message):
     try:
-        # Decode and load the JSON message
+        global is_last_message_acknowledged
+        with lock:
+            is_last_message_acknowledged = False
         print("message_id => ", message.message_id)
         message_data = message.data.decode("utf-8")
         parsed_message = json.loads(message_data)
@@ -69,7 +111,7 @@ def callback(message):
 
         if not request_payload:
             print("No request payload found!")
-            message.ack()
+            acknowledge_message(message)
             return
         print(f"Received message: {request_payload}")
         # Start a separate thread to keep extending the acknowledgment deadline during processing
@@ -78,17 +120,17 @@ def callback(message):
         )
         ack_extension_thread.start()
 
-        inferene_request = InferenceRequest(**request_payload)
-        inferene_request.prompt = inferene_request.prompt.replace(" ", "__")
-        if inferene_request.negative_prompt:
-            inferene_request.negative_prompt = inferene_request.negative_prompt.replace(
-                " ", "_"
+        inference_request = InferenceRequest(**request_payload)
+        inference_request.prompt = inference_request.prompt.replace(" ", "__")
+        if inference_request.negative_prompt:
+            inference_request.negative_prompt = (
+                inference_request.negative_prompt.replace(" ", "_")
             )
-        # replace whitespace with underscore
-        inference_job = InferenceJob(id=inferene_request.id, request=inferene_request)
+        # Replace whitespace with underscores
+        inference_job = InferenceJob(id=inference_request.id, request=inference_request)
         process_request(inference_job)
 
-        message.ack()
+        acknowledge_message(message)
         print("Message acknowledged successfully!")
 
         # Stop the acknowledgment extension thread
@@ -97,7 +139,7 @@ def callback(message):
         print("Exited Callback!")
     except Exception as e:
         print(f"Error processing message: {e}")
-        message.ack()
+        acknowledge_message(message)
 
 
 def listen_for_messages():
@@ -133,6 +175,10 @@ def handle_termination_signal(signum, frame):
 signal.signal(signal.SIGTERM, handle_termination_signal)
 signal.signal(signal.SIGINT, handle_termination_signal)
 
+idle_time_checker_thread = threading.Thread(target=check_idle_timeout)
+idle_time_checker_thread.start()
+
 listen_for_messages()
+
 while True:
     time.sleep(5)
