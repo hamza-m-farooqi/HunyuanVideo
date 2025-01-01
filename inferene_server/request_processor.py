@@ -18,119 +18,126 @@ from runpod.serverless.utils import rp_cleanup
 
 
 def background_inference(job: InferenceJob):
-    save_path = os.path.join(server_settings.BASE_DIR, job.id)
-    job.gpu_count = server_settings.RUNPOD_GPU_COUNT
-    job.gpu_type = server_settings.RUNPOD_GPU_TYPE
-    command = None
-    if job.request.model == InferenceModel.YOTTA_VIDEO_FP16:
-        command = f"bash -c 'torchrun --nproc_per_node=4 /home/HunyuanVideo/sample_video.py --prompt {job.request.prompt} --video-size {job.request.height} {job.request.width} --video-length {job.request.video_length} --seed {job.request.seed} --neg-prompt {job.request.negative_prompt} --infer-steps {job.request.infer_steps} --cfg-scale {job.request.guidance_scale} --flow-shift {job.request.flow_shift} --num-videos {job.request.num_videos_per_prompt} --ulysses-degree {job.request.ulysses_degree} --ring-degree {job.request.ring_degree} --save-path {save_path} --flow-reverse'"
-    elif job.request.model == InferenceModel.YOTTA_VIDEO_FP8 and job.gpu_count == 1:
-        dit_weight_path = os.path.join(
-            server_settings.BASE_DIR,
-            "ckpts",
-            "hunyuan-video-t2v-720",
-            "transformers",
-            "mp_rank_00_model_states_fp8.pt",
-        )
-        print(dit_weight_path)
-        command = f"bash -c 'python3 /home/HunyuanVideo/sample_video.py --dit-weight {dit_weight_path} --prompt {job.request.prompt} --video-size {job.request.height} {job.request.width} --video-length {job.request.video_length} --seed {job.request.seed} --neg-prompt {job.request.negative_prompt} --infer-steps {job.request.infer_steps} --cfg-scale {job.request.guidance_scale} --flow-shift {job.request.flow_shift} --num-videos {job.request.num_videos_per_prompt} --save-path {save_path}"
-    elif job.request.model == InferenceModel.YOTTA_VIDEO_FP8 and job.gpu_count == 4:
-        dit_weight_path = os.path.join(
-            server_settings.BASE_DIR,
-            "ckpts",
-            "hunyuan-video-t2v-720",
-            "transformers",
-            "mp_rank_00_model_states_fp8.pt",
-        )
-        print(dit_weight_path)
-        command = f"bash -c 'torchrun --nproc_per_node=4 /home/HunyuanVideo/sample_video.py --dit-weight {dit_weight_path} --prompt {job.request.prompt} --video-size {job.request.height} {job.request.width} --video-length {job.request.video_length} --seed {job.request.seed} --neg-prompt {job.request.negative_prompt} --infer-steps {job.request.infer_steps} --cfg-scale {job.request.guidance_scale} --flow-shift {job.request.flow_shift} --num-videos {job.request.num_videos_per_prompt} --ulysses-degree {job.request.ulysses_degree} --ring-degree {job.request.ring_degree} --save-path {save_path}"
-    else:
-        job.status = InferenceStatus.FAILED.value
-        job.message = "Invalid GPU count"
-        webhook_response(job.request.webhook_url, json.loads(job.json()))
-        return
-    webhook_response(job.request.webhook_url, json.loads(job.json()))
-    print(command)
-
     try:
-        process = subprocess.Popen(
-            command,
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
+        save_path = os.path.join(server_settings.BASE_DIR, job.id)
+        job.gpu_count = server_settings.RUNPOD_GPU_COUNT
+        job.gpu_type = server_settings.RUNPOD_GPU_TYPE
+        command = None
+        if job.request.model == InferenceModel.YOTTA_VIDEO_FP16:
+            command = f"bash -c 'torchrun --nproc_per_node=4 /home/HunyuanVideo/sample_video.py --prompt {job.request.prompt} --video-size {job.request.height} {job.request.width} --video-length {job.request.video_length} --seed {job.request.seed} --neg-prompt {job.request.negative_prompt} --infer-steps {job.request.infer_steps} --cfg-scale {job.request.guidance_scale} --flow-shift {job.request.flow_shift} --num-videos {job.request.num_videos_per_prompt} --ulysses-degree {job.request.ulysses_degree} --ring-degree {job.request.ring_degree} --save-path {save_path} --flow-reverse'"
+        elif job.request.model == InferenceModel.YOTTA_VIDEO_FP8 and job.gpu_count == 1:
+            dit_weight_path = os.path.join(
+                server_settings.BASE_DIR,
+                "ckpts",
+                "hunyuan-video-t2v-720",
+                "transformers",
+                "mp_rank_00_model_states_fp8.pt",
+            )
+            print(dit_weight_path)
+            command = f"bash -c 'python3 /home/HunyuanVideo/sample_video.py --dit-weight {dit_weight_path} --prompt {job.request.prompt} --video-size {job.request.height} {job.request.width} --video-length {job.request.video_length} --seed {job.request.seed} --neg-prompt {job.request.negative_prompt} --infer-steps {job.request.infer_steps} --cfg-scale {job.request.guidance_scale} --flow-shift {job.request.flow_shift} --num-videos {job.request.num_videos_per_prompt} --save-path {save_path}"
+        elif job.request.model == InferenceModel.YOTTA_VIDEO_FP8 and job.gpu_count == 4:
+            dit_weight_path = os.path.join(
+                server_settings.BASE_DIR,
+                "ckpts",
+                "hunyuan-video-t2v-720",
+                "transformers",
+                "mp_rank_00_model_states_fp8.pt",
+            )
+            print(dit_weight_path)
+            command = f"bash -c 'torchrun --nproc_per_node=4 /home/HunyuanVideo/sample_video.py --dit-weight {dit_weight_path} --prompt {job.request.prompt} --video-size {job.request.height} {job.request.width} --video-length {job.request.video_length} --seed {job.request.seed} --neg-prompt {job.request.negative_prompt} --infer-steps {job.request.infer_steps} --cfg-scale {job.request.guidance_scale} --flow-shift {job.request.flow_shift} --num-videos {job.request.num_videos_per_prompt} --ulysses-degree {job.request.ulysses_degree} --ring-degree {job.request.ring_degree} --save-path {save_path}"
+        else:
+            job.status = InferenceStatus.FAILED.value
+            job.message = "Invalid GPU count"
+            webhook_response(job.request.webhook_url, json.loads(job.json()))
+            return
+        webhook_response(job.request.webhook_url, json.loads(job.json()))
+        print(command)
 
-        # Use select to read from stdout and stderr without blocking
-        inferene_progress = None
-        stderr_output = []
-        while True:
-            reads = [process.stdout.fileno(), process.stderr.fileno()]
-            ret = select.select(reads, [], [])
-            for fd in ret[0]:
-                if fd == process.stdout.fileno():
-                    read = process.stdout.readline()
-                    if read:
-                        output = read.strip()
-                        print(output)
-                        percentage = 0
-                        if f"/{job.request.infer_steps}" in output:
-                            percentage_value = get_progress_percentage(output)
-                            percentage = percentage_value if percentage_value else 0
-
-                        job.progress = percentage
-                        if inferene_progress is None or job.progress >= (
-                            inferene_progress + 5
-                        ):
-                            inferene_progress = job.progress
-                            webhook_response(
-                                job.request.webhook_url,
-                                json.loads(job.json()),
-                            )
-                if fd == process.stderr.fileno():
-                    read = process.stderr.readline()
-                    if read:
-                        output = read.strip()
-                        print(output)
-                        stderr_output.append(output)
-                        percentage = 0
-                        if f"/{job.request.infer_steps}" in output:
-                            percentage_value = get_progress_percentage(output)
-                            percentage = percentage_value if percentage_value else 0
-                        job.progress = percentage
-                        if inferene_progress is None or job.progress >= (
-                            inferene_progress + 5
-                        ):
-                            inferene_progress = job.progress
-                            webhook_response(
-                                job.request.webhook_url,
-                                json.loads(job.json()),
-                            )
-                print(job.progress)
-            if process.poll() is not None:
-                break
-
-        return_code = process.poll()
-        if return_code != 0:
-            stderr_combined = "\n".join(stderr_output)
-            raise subprocess.CalledProcessError(
-                return_code, command, output=stderr_combined
+        try:
+            process = subprocess.Popen(
+                command,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
             )
 
-        print("Job is Finished")
-        process_response(job, save_path)
-        job.progress = 100
-        job.status = InferenceStatus.COMPLETED.value
-        job.end_time = datetime.now(pytz.utc)
-        webhook_response(job.request.webhook_url, json.loads(job.json()))
+            # Use select to read from stdout and stderr without blocking
+            inferene_progress = None
+            stderr_output = []
+            while True:
+                reads = [process.stdout.fileno(), process.stderr.fileno()]
+                ret = select.select(reads, [], [])
+                for fd in ret[0]:
+                    if fd == process.stdout.fileno():
+                        read = process.stdout.readline()
+                        if read:
+                            output = read.strip()
+                            print(output)
+                            percentage = 0
+                            if f"/{job.request.infer_steps}" in output:
+                                percentage_value = get_progress_percentage(output)
+                                percentage = percentage_value if percentage_value else 0
 
-    except subprocess.CalledProcessError as e:
-        print(e)
-        job.status = InferenceStatus.FAILED.value
-        job.message = str(e)
-        webhook_response(job.request.webhook_url, json.loads(job.json()))
-        raise Exception(str(e))
+                            job.progress = percentage
+                            if inferene_progress is None or job.progress >= (
+                                inferene_progress + 5
+                            ):
+                                inferene_progress = job.progress
+                                webhook_response(
+                                    job.request.webhook_url,
+                                    json.loads(job.json()),
+                                )
+                    if fd == process.stderr.fileno():
+                        read = process.stderr.readline()
+                        if read:
+                            output = read.strip()
+                            print(output)
+                            stderr_output.append(output)
+                            percentage = 0
+                            if f"/{job.request.infer_steps}" in output:
+                                percentage_value = get_progress_percentage(output)
+                                percentage = percentage_value if percentage_value else 0
+                            job.progress = percentage
+                            if inferene_progress is None or job.progress >= (
+                                inferene_progress + 5
+                            ):
+                                inferene_progress = job.progress
+                                webhook_response(
+                                    job.request.webhook_url,
+                                    json.loads(job.json()),
+                                )
+                    print(job.progress)
+                if process.poll() is not None:
+                    break
 
+            return_code = process.poll()
+            if return_code != 0:
+                stderr_combined = "\n".join(stderr_output)
+                raise subprocess.CalledProcessError(
+                    return_code, command, output=stderr_combined
+                )
+
+            print("Job is Finished")
+            process_response(job, save_path)
+            job.progress = 100
+            job.status = InferenceStatus.COMPLETED.value
+            job.end_time = datetime.now(pytz.utc)
+            webhook_response(job.request.webhook_url, json.loads(job.json()))
+
+        except subprocess.CalledProcessError as e:
+            print(e)
+            job.status = InferenceStatus.FAILED.value
+            job.message = str(e)
+            webhook_response(job.request.webhook_url, json.loads(job.json()))
+            raise Exception(str(e))
+
+        except Exception as e:
+            print(e)
+            job.status = InferenceStatus.FAILED.value
+            job.message = str(e)
+            webhook_response(job.request.webhook_url, json.loads(job.json()))
+            raise Exception(str(e))
     except Exception as e:
         print(e)
         job.status = InferenceStatus.FAILED.value
