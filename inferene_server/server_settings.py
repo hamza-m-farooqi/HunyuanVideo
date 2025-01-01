@@ -18,3 +18,4 @@ print("RunPod Pod Id", RUNPOD_POD_ID)
 
 RUNPOD_GPU_COUNT = config("RUNPOD_GPU_COUNT", cast=int)
 RUNPOD_GPU_TYPE = config("RUNPOD_GPU_TYPE")
+IDLE_TIME_IN_SECONDS= config("IDLE_TIME_IN_SECONDS", cast=int)

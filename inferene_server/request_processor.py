@@ -35,7 +35,7 @@ def background_inference(job: InferenceJob):
             )
             dit_weight_path="/home/HunyuanVideo/ckpts/hunyuan-video-t2v-720p/transformers/mp_rank_00_model_states_fp8.pt"
             print("DIT WEIGHT PATH",dit_weight_path)
-            command = f"bash -c 'python3 /home/HunyuanVideo/sample_video.py --dit-weight {dit_weight_path} --prompt {job.request.prompt} --video-size {job.request.height} {job.request.width} --video-length {job.request.video_length} --seed {job.request.seed} --neg-prompt {job.request.negative_prompt} --infer-steps {job.request.infer_steps} --cfg-scale {job.request.guidance_scale} --flow-shift {job.request.flow_shift} --num-videos {job.request.num_videos_per_prompt} --save-path {save_path} --use-fp8 --embedded-cfg-scale 6.0'"
+            command = f"bash -c 'python3 /home/HunyuanVideo/sample_video.py --dit-weight {dit_weight_path} --prompt {job.request.prompt} --video-size {job.request.height} {job.request.width} --video-length {job.request.video_length} --seed {job.request.seed} --neg-prompt {job.request.negative_prompt} --infer-steps {job.request.infer_steps} --cfg-scale {job.request.guidance_scale} --flow-shift {job.request.flow_shift} --num-videos {job.request.num_videos_per_prompt} --save-path {save_path} --use-fp8 --embedded-cfg-scale 6.0 --use-cpu-offload'"
         elif job.request.model == InferenceModel.YOTTA_VIDEO_FP8 and job.gpu_count == 4:
             dit_weight_path = os.path.join(
                 server_settings.BASE_DIR,

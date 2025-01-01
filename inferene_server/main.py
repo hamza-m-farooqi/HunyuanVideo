@@ -23,7 +23,8 @@ from server_settings import (
     RUNPOD_POD_ID,
     RUNPOD_API_KEY,
     RUNPOD_GPU_COUNT,
-    RUNPOD_GPU_TYPE
+    RUNPOD_GPU_TYPE,
+    IDLE_TIME_IN_SECONDS
 )
 from request_processor import process_request
 from server_utils import save_gcloud_keys
@@ -56,7 +57,7 @@ is_last_message_acknowledged = True
 def check_idle_timeout():
     global last_message_acknowledge_time
     global is_last_message_acknowledged
-    idle_timeout = 60  # Configurable idle timeout in seconds
+    idle_timeout = IDLE_TIME_IN_SECONDS or 60  # Configurable idle timeout in seconds
     while not stop_event.is_set():
         try:
             with lock:
