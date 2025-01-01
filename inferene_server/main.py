@@ -22,6 +22,8 @@ from server_settings import (
     GCLOUD_PUB_SUB_CREDENTIALS,
     RUNPOD_POD_ID,
     RUNPOD_API_KEY,
+    RUNPOD_GPU_COUNT,
+    RUNPOD_GPU_TYPE
 )
 from request_processor import process_request
 from server_utils import save_gcloud_keys
@@ -118,6 +120,8 @@ def callback(message):
             acknowledge_message(message)
             return
         print(f"Received message: {request_payload}")
+        print(f"RUNPOD GPU COUNT: {RUNPOD_GPU_COUNT}")
+        print(f"RUNPOD GPU TYPE: {RUNPOD_GPU_TYPE}")
         # Start a separate thread to keep extending the acknowledgment deadline during processing
         ack_extension_stop_event.clear()  # Ensure event is cleared before starting
         ack_extension_thread = threading.Thread(
