@@ -16,5 +16,5 @@ RUNPOD_POD_ID = config("RUNPOD_POD_ID")
 RUNPOD_API_KEY = config("RUNPOD_API_KEY")
 print("RunPod Pod Id", RUNPOD_POD_ID)
 
-RUNPOD_GPU_COUNT = config("RUNPOD_GPU_COUNT", default=4, cast=int)
-RUNPOD_GPU_TYPE = config("RUNPOD_GPU_TYPE", default="NVIDIA_H100_80GB_HBM3")
+RUNPOD_GPU_COUNT = config("RUNPOD_GPU_COUNT", cast=int)
+RUNPOD_GPU_TYPE = config("RUNPOD_GPU_TYPE")
