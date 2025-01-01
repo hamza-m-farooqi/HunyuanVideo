@@ -4,12 +4,15 @@ import requests
 from threading import Thread
 from server_settings import BASE_DIR
 
+
 def webhook_response(training_webhook_url, data=None):
-    print("Going to send webhook response",training_webhook_url)
+    print("Going to send webhook response", training_webhook_url)
+
     def send(training_webhook_url, data=None):
         if training_webhook_url and "http" in training_webhook_url:
             requests.post(training_webhook_url, json=data)
-            print("Webhook response sent",training_webhook_url)
+            print("Webhook response sent", training_webhook_url)
+
     Thread(target=send, args=(training_webhook_url, data)).start()
     return None
 

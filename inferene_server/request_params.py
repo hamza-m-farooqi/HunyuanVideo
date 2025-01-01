@@ -5,6 +5,11 @@ from typing import List
 from pydantic import BaseModel
 
 
+class InferenceModel(Enum):
+    YOTTA_VIDEO_FP16 = "YOTTA_VIDEO_FP16"
+    YOTTA_VIDEO_FP8 = "YOTTA_VIDEO_FP8"
+
+
 class InferenceRequest(BaseModel):
     id: str
     prompt: str
@@ -20,6 +25,7 @@ class InferenceRequest(BaseModel):
     ulysses_degree: int
     ring_degree: int
     webhook_url: str
+    model: InferenceModel
 
 
 class InferenceStatus(Enum):
@@ -33,9 +39,16 @@ class InferenceResponse(BaseModel):
     video_url: str
 
 
+class InferenceGPUTYPE(Enum):
+    NVIDIA_H100_80GB_HBM3 = "NVIDIA_H100_80GB_HBM3"
+    NVIDIA_A100_SXM4_80GB = "NVIDIA_A100_SXM4_80GB"
+
+
 class InferenceJob(BaseModel):
     id: str = None
     request: InferenceRequest = None
+    gpu_count: int = 4
+    gpu_type: InferenceGPUTYPE = InferenceGPUTYPE.NVIDIA_H100_80GB_HBM3
     progress: int = 0
     status: str = InferenceStatus.PENDING.value  # Initial status
     results: List[InferenceResponse] = []
