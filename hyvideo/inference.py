@@ -503,7 +503,7 @@ class HunyuanVideoSampler(Inference):
         video_length=129,
         seed=None,
         negative_prompt=None,
-        infer_steps=50,
+        infer_steps=30,
         guidance_scale=6,
         flow_shift=5.0,
         embedded_guidance_scale=None,

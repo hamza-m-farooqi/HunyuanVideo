@@ -68,7 +68,7 @@ def add_inference_options(options: OptionsDict):
 
     # Inference general options
     options.batch_size = 1
-    options.setdefault("infer_steps", 50)
+    options.setdefault("infer_steps", 30)
     options.disable_autocast = False
     options.save_path = "./results"
     options.save_path_suffix = ""
