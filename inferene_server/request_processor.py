@@ -24,7 +24,11 @@ def background_inference(job: InferenceJob):
         job.gpu_type = server_settings.RUNPOD_GPU_TYPE
         command = None
         if job.request.model == InferenceModel.YOTTA_VIDEO_FP16:
-            command = f"bash -c 'torchrun --nproc_per_node=4 /home/HunyuanVideo/sample_video.py --prompt {job.request.prompt} --video-size {job.request.height} {job.request.width} --video-length {job.request.video_length} --seed {job.request.seed} --neg-prompt {job.request.negative_prompt} --infer-steps {job.request.infer_steps} --cfg-scale {job.request.guidance_scale} --flow-shift {job.request.flow_shift} --num-videos {job.request.num_videos_per_prompt} --ulysses-degree {job.request.ulysses_degree} --ring-degree {job.request.ring_degree} --save-path {save_path} --flow-reverse'"
+            # --neg-prompt {job.request.negative_prompt}
+            # --cfg-scale {job.request.guidance_scale}
+            # --flow-shift {job.request.flow_shift}
+            command = f"bash -c 'torchrun --nproc_per_node=4 /home/HunyuanVideo/sample_video.py --prompt {job.request.prompt} --video-size {job.request.height} {job.request.width} --video-length {job.request.video_length} --seed {job.request.seed} --infer-steps {job.request.infer_steps} --ulysses-degree {job.request.ulysses_degree} --ring-degree {job.request.ring_degree} --save-path {save_path} --flow-reverse --num-videos {job.request.num_videos_per_prompt}'"
+            # command = f"bash -c 'torchrun --nproc_per_node=4 /home/HunyuanVideo/sample_video.py --prompt {job.request.prompt} --video-size {job.request.height} {job.request.width} --video-length {job.request.video_length} --seed {job.request.seed} --infer-steps {job.request.infer_steps} --ulysses-degree {job.request.ulysses_degree} --ring-degree {job.request.ring_degree} --save-path {save_path} --flow-reverse'"
         elif job.request.model == InferenceModel.YOTTA_VIDEO_FP8 and job.gpu_count == 1:
             dit_weight_path = os.path.join(
                 server_settings.BASE_DIR,
